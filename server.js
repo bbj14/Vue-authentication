@@ -16,9 +16,19 @@ app.get('/', (req, res) => {
   })
 })
 
-app.get('/dashboard', (req, res) => {
-  res.json({
-    events: events
+app.get('/dashboard', verifyToken, (req, res) => {
+  // verifyToken is middleware
+  jwt.verify(req.token, 'the_secret_key', (err) => {
+    // verifies token
+    if (err) {
+      // if error, respond with 401 code
+      res.sendStatus(401)
+    } else {
+      // otherwise, respond with private data
+      res.json({
+        events: events
+      })
+    }
   })
 })
 
@@ -37,7 +47,7 @@ app.post('/register', (req, res) => {
     if (dbUserEmail === req.body.email) {
       res.sendStatus(400)
     } else {
-      fs.writeFile('./db/user.json', data, err => {
+      fs.writeFile('./db/user.json', data, (err) => {
         if (err) {
           console.log(err + data)
         } else {
@@ -77,7 +87,7 @@ app.post('/login', (req, res) => {
 })
 
 // MIDDLEWARE
-function verifyToken (req, res, next) {
+function verifyToken(req, res, next) {
   const bearerHeader = req.headers['authorization']
 
   if (typeof bearerHeader !== 'undefined') {
